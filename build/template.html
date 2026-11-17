@@ -253,6 +253,18 @@ details.more .sum{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space
 .opts.grid .opt::before{display:none}
 .opts.grid .opt[aria-pressed=true]{background:var(--bad);border-color:var(--bad);color:var(--surface);text-decoration:line-through}
 
+.dscrim{position:fixed;inset:0;z-index:40;background:rgba(5,10,15,.62)}
+.disc{position:fixed;z-index:41;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);width:min(560px,calc(100% - 24px));background:var(--surface);color:var(--ink);border-radius:18px;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.4);overflow:hidden}
+.discb{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:20px 20px 8px;font-size:15px;line-height:1.5}
+.discb:focus{outline:none}
+.disce{margin:0 0 4px;font:600 12px/1 var(--f-num);letter-spacing:.12em;text-transform:uppercase;color:var(--bad)}
+.disc h2{margin:0 0 12px;font:700 24px/1.15 var(--f-num);text-wrap:balance}
+.discb p{margin:0 0 12px;color:var(--ink2)}
+.discb p b{color:var(--ink)}
+.discb .discn{color:var(--ink);font-weight:600}
+.disc footer{flex:none;padding:12px 20px 16px;border-top:1px solid var(--line);background:var(--surface)}
+.disc footer .btn{width:100%;min-height:50px;font-size:16px}
+.discl{border:0;background:none;padding:6px 0;margin-top:4px;min-height:32px;color:var(--ink2);font-size:13px;text-decoration:underline;text-underline-offset:3px}
 .toast{width:max-content;position:fixed;z-index:30;left:50%;transform:translateX(-50%);bottom:calc(var(--tab-h) + env(safe-area-inset-bottom,0px) + 14px);max-width:calc(100% - 32px);background:var(--ink);color:var(--bg);border-radius:12px;padding:4px 6px 4px 14px;font-size:14.5px;font-weight:500;display:flex;align-items:center;gap:8px;min-height:44px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
 .toast button{min-height:36px;border:0;background:none;color:var(--lime);font-weight:700;padding:0 10px}
 </style>
@@ -261,6 +273,7 @@ details.more .sum{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space
   <div class="grow">
     <h1>Open Shifts <span class="sign">Winter 2027</span></h1>
     <p>Winter 2027 booking reports as of __ASOF__, open work only.</p>
+    <button class="discl" id="discL" type="button">Confidentiality and use notice</button>
   </div>
   <button class="thm" id="thm" type="button" aria-label="Change theme"></button>
 </div></div>
@@ -289,6 +302,21 @@ details.more .sum{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space
   <footer><button class="btn" id="rstAll" type="button">Reset to default</button><button class="btn" id="clrAll" type="button">Clear all</button><button class="btn pri" id="fsDone" type="button"></button></footer>
 </section>
 <div class="toast" id="toast" role="status" hidden></div>
+<div class="dscrim" id="dscrim" hidden></div>
+<section class="disc" id="disc" role="dialog" aria-modal="true" aria-labelledby="discT" hidden>
+  <div class="discb" id="discb" tabindex="-1">
+    <p class="disce">Please read before continuing</p>
+    <h2 id="discT">Confidentiality and use notice</h2>
+    <p><b>Unofficial site.</b> This site is a personal reference tool. It is not an official publication of the employer, and it is not affiliated with, endorsed by, sponsored by or approved by the employer or any union. Nothing on it is an offer, assignment or confirmation of work.</p>
+    <p><b>Information is not owned by the site author.</b> The booking reports, shift and run details, spare board counts, days off and vacation figures shown here belong to the employer and may be confidential. The person who prepared this site does not own this information and has no authority to give anyone permission to use it.</p>
+    <p><b>No sharing or reuse.</b> You may view this information only for your own personal reference. You must not copy, reproduce, distribute, publish, forward, post, sell, modify, adapt, create derivative works from, or otherwise share this site or any of its contents, in whole or in part, with any other person or with anyone outside the company, by any means, including screenshots, printouts, exported files and links. Do not share the address of this site.</p>
+    <p><b>No warranty.</b> The information may be incomplete, out of date or wrong. It is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo;, without warranty of any kind. Always confirm work, times, pay and availability against the official booking reports and with the employer. To the fullest extent permitted by law, the site author accepts no liability for any loss or damage arising from use of, or reliance on, this site.</p>
+    <p><b>Your responsibility.</b> You are responsible for following the employer&rsquo;s confidentiality, privacy and acceptable-use policies, any collective agreement, and all applicable laws. If you are not authorised to view this information, or do not agree to these terms, close this page now.</p>
+    <p class="discn">By selecting &ldquo;I Understand &amp; Agree&rdquo; you confirm that you have read this notice and agree to be bound by it.</p>
+  </div>
+  <footer><button class="btn pri" id="discOk" type="button">I Understand &amp; Agree</button></footer>
+</section>
+
 
 <script>
 /*__DATA__*/
@@ -582,7 +610,7 @@ function openSheet(){
 }
 function closeSheet(){if($('fs').hidden)return;$('scrim').hidden=true;$('fs').hidden=true;document.body.style.overflow='';$('fbtn').focus({preventScroll:true})}
 $('fbtn').onclick=openSheet;$('fsX').onclick=$('fsDone').onclick=$('scrim').onclick=closeSheet;
-document.addEventListener('keydown',e=>{if(e.key=='Escape')closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key=='Escape'&&$('disc').hidden)closeSheet()});
 $('fsb').addEventListener('click',e=>{
   const st=S(),d=D();let b;
   if(b=e.target.closest('[data-set]')){st[b.dataset.set]=b.dataset.v;return changed()}
@@ -785,6 +813,18 @@ function applyTheme(){
 }
 $('thm').onclick=()=>{TH=TH=='auto'?'light':TH=='light'?'dark':'auto';lsSet('open-shifts-theme',TH);applyTheme()};
 applyTheme();
+
+/* ---------- confidentiality notice ---------- */
+const AGREE_KEY='open-shifts-agree1';
+function showNotice(){
+  $('dscrim').hidden=false;$('disc').hidden=false;document.body.style.overflow='hidden';
+  $('discb').scrollTop=0;$('discb').focus({preventScroll:true});
+}
+function hideNotice(){$('dscrim').hidden=true;$('disc').hidden=true;document.body.style.overflow=''}
+$('discOk').onclick=()=>{lsSet(AGREE_KEY,new Date().toISOString());hideNotice()};
+$('discL').onclick=showNotice;
+document.addEventListener('keydown',e=>{if(e.key=='Tab'&&!$('disc').hidden){e.preventDefault();$('discOk').focus()}});
+if(!lsGet(AGREE_KEY))showNotice();
 
 const c0=+lsGet('open-shifts-sheet');if(c0>0&&c0<DATA.length)cur=c0;
 renderChrome();render();
