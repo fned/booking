@@ -1,0 +1,1 @@
+Upload the booking report PDFs into this folder. Any file that is not a PDF is ignored.
