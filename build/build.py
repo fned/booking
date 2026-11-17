@@ -146,6 +146,20 @@ def parse_vac(text):
     tot = [sum(r[i] for r in rows) for i in (2, 3, 4)]
     return {'tot': tot, 'rows': rows}
 
+HOLIDAY = ('XMAS Week', 'March Break Week', 'New Years Week')
+_GUIDE = None
+def guide_order(run, on, off):
+    """Routes in driving order from the Reduced Week run guide, or None."""
+    global _GUIDE
+    if _GUIDE is None:
+        try: _GUIDE = json.load(open(P('data', 'reduced-week-guide.json'), encoding='utf8'))['runs']
+        except Exception: _GUIDE = {}
+    trips = _GUIDE.get(run)
+    if not trips: return None
+    a = tm(on); b = tm(off)
+    if b <= a: b += 1440
+    return [rt for _, rt, t, e in trips if t < b - 3 and e > a + 8] or None
+
 def build_sheet(name, has_day, has_open, has_pay, parsed, routes, stats):
     def split(s): return [x.strip() for x in s.split(',') if x.strip()]
     seen = set(); shifts = []
@@ -160,8 +174,11 @@ def build_sheet(name, has_day, has_open, has_pay, parsed, routes, stats):
                 raise ValueError('%s shift %s run %s is incomplete' % (name, sn, r[0]))
             k = '|'.join([name, r[0], r[2], r[3], r[4], r[5]])
             pdf = split(r[1]); known = routes.get(k)
+            g = guide_order(r[0], r[3], r[4]) if name in HOLIDAY else None
             if known is not None and sorted(set(split(known))) == sorted(set(pdf)):
                 order = known
+            elif g and sorted(set(g)) == sorted(set(pdf)):
+                order = ', '.join(g); routes[k] = order
             else:  # new run: keep the report's list (sorted, no repeats)
                 order = ', '.join(pdf); routes[k] = order; stats['new_runs'] += 1
             gap = '' if j == 0 else hm((tm(r[3]) - tm(s['runs'][j - 1][4])) % 1440)
