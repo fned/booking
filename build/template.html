@@ -305,7 +305,7 @@ details.more .sum{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space
 <section class="fs" id="fs" role="dialog" aria-modal="true" aria-labelledby="fsT" hidden>
   <header><div style="flex:1;min-width:0"><h2 id="fsT">Filters</h2><small id="fsS"></small></div><button class="ib" id="fsX" type="button" aria-label="Close filters" style="margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
   <div class="fsb" id="fsb"></div>
-  <footer><button class="btn" id="rstAll" type="button">Reset to default</button><button class="btn" id="clrAll" type="button">Clear all</button><button class="btn pri" id="fsDone" type="button"></button></footer>
+  <footer><button class="btn" id="rstAll" type="button">Use preset</button><button class="btn" id="clrAll" type="button">Clear all</button><button class="btn pri" id="fsDone" type="button"></button></footer>
 </section>
 <div class="toast" id="toast" role="status" hidden></div>
 <div class="dscrim" id="dscrim" hidden></div>
@@ -371,12 +371,13 @@ DATA.forEach(sh=>{
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 const SETS=['rt','onl','offl','ea'];
-function defState(d){return {q:'',sec:'',day:'',op:'',sort:'',pl:false,es:false,so:false,gp:'',rt:new Set(ROUTES),onl:new Set(d.onl.filter(v=>HIDE.test(v))),offl:new Set(d.offl.filter(v=>HIDE2.test(v))),ea:new Set()}}
+function presetState(d){return {q:'',sec:'',day:'',op:'',sort:'',pl:false,es:false,so:false,gp:'',rt:new Set(ROUTES),onl:new Set(d.onl.filter(v=>HIDE.test(v))),offl:new Set(d.offl.filter(v=>HIDE2.test(v))),ea:new Set()}}
+function defState(d){return clearState()}
 function clearState(){return {q:'',sec:'',day:'',op:'',sort:'',pl:false,es:false,so:false,gp:'',rt:new Set(),onl:new Set(),offl:new Set(),ea:new Set()}}
 const optsOf=(d,id)=>id=='rt'?ROUTES:id=='ea'?EA:d[id];
 const ST={};
 (function(){
-  let saved={};try{saved=JSON.parse(lsGet('open-shifts-filters1')||'{}')||{}}catch(e){saved={}}
+  let saved={};try{saved=JSON.parse(lsGet('open-shifts-filters2')||'{}')||{}}catch(e){saved={}}
   DATA.forEach(d=>{
     const st=defState(d),sv=saved[d.name];
     if(sv&&typeof sv=='object'){
@@ -390,7 +391,7 @@ const ST={};
     ST[d.name]=st;
   });
 })();
-function saveState(){const o={};DATA.forEach(d=>{const s=ST[d.name];o[d.name]={sec:s.sec,day:s.day,op:s.op,sort:s.sort,pl:s.pl,es:s.es,so:s.so,gp:s.gp,rt:[...s.rt],onl:[...s.onl],offl:[...s.offl],ea:[...s.ea]}});lsSet('open-shifts-filters1',JSON.stringify(o))}
+function saveState(){const o={};DATA.forEach(d=>{const s=ST[d.name];o[d.name]={sec:s.sec,day:s.day,op:s.op,sort:s.sort,pl:s.pl,es:s.es,so:s.so,gp:s.gp,rt:[...s.rt],onl:[...s.onl],offl:[...s.offl],ea:[...s.ea]}});lsSet('open-shifts-filters2',JSON.stringify(o))}
 let FAVS={};
 try{const raw=JSON.parse(lsGet('open-shifts-favs2')||'null');if(raw&&typeof raw=='object'&&!Array.isArray(raw))FAVS=raw}catch(e){FAVS={}}
 let GONE={};
@@ -568,7 +569,7 @@ function renderInfo(){
 /* ---------- filter sheet ---------- */
 function msHTML(d,st,id,label,word,cls,grid){
   const vals=optsOf(d,id),n=st[id].size,good=id=='ea'?n>0:n==0;
-  return '<details class="ms '+cls+'" data-ms="'+id+'"><summary><span>'+label+'</span><b class="c '+(good?'good':'bad')+'">'+n+'/'+vals.length+' '+word+'</b></summary><div class="msa"><button type="button" data-act="all">Select all</button><button type="button" data-act="clr">Clear</button><button type="button" data-act="rst">Default</button></div><div class="opts'+(grid?' grid':'')+'">'+vals.map(v=>'<button type="button" class="opt" data-v="'+esc(v)+'" aria-pressed="'+st[id].has(v)+'"'+(grid?' aria-label="Route '+esc(v)+'"':'')+'>'+esc(v)+'</button>').join('')+'</div></details>';
+  return '<details class="ms '+cls+'" data-ms="'+id+'"><summary><span>'+label+'</span><b class="c '+(good?'good':'bad')+'">'+n+'/'+vals.length+' '+word+'</b></summary><div class="msa"><button type="button" data-act="all">Select all</button><button type="button" data-act="clr">Clear</button><button type="button" data-act="rst">Preset</button></div><div class="opts'+(grid?' grid':'')+'">'+vals.map(v=>'<button type="button" class="opt" data-v="'+esc(v)+'" aria-pressed="'+st[id].has(v)+'"'+(grid?' aria-label="Route '+esc(v)+'"':'')+'>'+esc(v)+'</button>').join('')+'</div></details>';
 }
 function segHTML(key,label,vals,curV,all){
   return '<div class="fg"><div class="fl">'+label+'</div><div class="seg">'+[['',all]].concat(vals.map(v=>[v,v])).map(o=>'<button type="button" data-set="'+key+'" data-v="'+esc(o[0])+'" aria-pressed="'+(curV==o[0])+'">'+esc(o[1])+'</button>').join('')+'</div></div>';
@@ -632,7 +633,7 @@ $('fsb').addEventListener('click',e=>{
   if(b=e.target.closest('.opt')){const v=b.dataset.v;st[id].has(v)?st[id].delete(v):st[id].add(v);return changed()}
   if(b=e.target.closest('[data-act]')){
     const a=b.dataset.act;
-    st[id]=a=='all'?new Set(optsOf(d,id)):a=='clr'?new Set():defState(d)[id];
+    st[id]=a=='all'?new Set(optsOf(d,id)):a=='clr'?new Set():presetState(d)[id];
     return changed();
   }
 });
@@ -642,8 +643,8 @@ $('fsb').addEventListener('change',e=>{
   changed();
 });
 $('fsb').addEventListener('input',e=>{if(e.target.id=='f_gp'){S().gp=e.target.value;changed(true)}});
-function resetFilters(mode){const d=D();ST[d.name]=mode=='default'?defState(d):clearState();$('q').value='';changed()}
-$('rstAll').onclick=()=>resetFilters('default');
+function resetFilters(mode){const d=D();ST[d.name]=mode=='preset'?presetState(d):clearState();$('q').value='';changed()}
+$('rstAll').onclick=()=>resetFilters('preset');
 $('clrAll').onclick=()=>resetFilters('clear');
 $('chips').addEventListener('click',e=>{const b=e.target.closest('[data-clear]');if(!b)return;clearOne(b.dataset.clear);changed()});
 
