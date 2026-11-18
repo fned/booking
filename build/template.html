@@ -9,7 +9,7 @@
   --accent:#1b56c4;--accent-ink:#ffffff;--accent-soft:#e3ecfb;
   --star:#c97a00;--lime:#a3e635;--lime-ink:#1a2e05;
   --bad:#c0271f;--bad-soft:#fdeceb;--bad-line:#eeb4b0;--strike:#8b1a1a;--good:#14753f;--good-soft:#e2f4ea;
-  --gap:#8a2fb8;--unpaid:#172b6b;--reset:#b45309;--reset-ink:#ffffff;--clear:#0f766e;--clear-ink:#ffffff;--sign:#14202b;--sign-ink:#ffc94a;--shadow:0 1px 2px rgba(19,32,44,.06),0 4px 14px rgba(19,32,44,.05);
+  --gap:#8a2fb8;--sat:#be185d;--sun:#a16207;--sat-ink:#ffffff;--sun-ink:#ffffff;--unpaid:#172b6b;--reset:#b45309;--reset-ink:#ffffff;--clear:#0f766e;--clear-ink:#ffffff;--sign:#14202b;--sign-ink:#ffc94a;--shadow:0 1px 2px rgba(19,32,44,.06),0 4px 14px rgba(19,32,44,.05);
   --f-body:"Barlow",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   --f-num:"Barlow Semi Condensed","Barlow",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   --tab-h:58px;
@@ -19,13 +19,13 @@
   --accent:#86abff;--accent-ink:#0a1b3d;--accent-soft:#1a2a47;
   --star:#f5b83d;--lime:#a3e635;--lime-ink:#1a2e05;
   --bad:#ff8077;--bad-soft:#351a1b;--bad-line:#6b2d2c;--strike:#d98484;--good:#63d49b;--good-soft:#14301f;
-  --gap:#d6a0ff;--unpaid:#9db8ff;--reset:#f59e0b;--reset-ink:#2a1700;--clear:#2dd4bf;--clear-ink:#02201c;--sign:#05090d;--sign-ink:#ffc94a;--shadow:0 1px 2px rgba(0,0,0,.4);color-scheme:dark}}
+  --gap:#d6a0ff;--sat:#f472b6;--sun:#facc15;--sat-ink:#2a0717;--sun-ink:#211a00;--unpaid:#9db8ff;--reset:#f59e0b;--reset-ink:#2a1700;--clear:#2dd4bf;--clear-ink:#02201c;--sign:#05090d;--sign-ink:#ffc94a;--shadow:0 1px 2px rgba(0,0,0,.4);color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0c1218;--surface:#151e27;--surface2:#1c2732;--ink:#e8eef3;--ink2:#a3b2c0;--ink3:#6f7f8e;--line:#2a3743;--rail:#3c4b59;
   --accent:#86abff;--accent-ink:#0a1b3d;--accent-soft:#1a2a47;
   --star:#f5b83d;--lime:#a3e635;--lime-ink:#1a2e05;
   --bad:#ff8077;--bad-soft:#351a1b;--bad-line:#6b2d2c;--strike:#d98484;--good:#63d49b;--good-soft:#14301f;
-  --gap:#d6a0ff;--unpaid:#9db8ff;--reset:#f59e0b;--reset-ink:#2a1700;--clear:#2dd4bf;--clear-ink:#02201c;--sign:#05090d;--sign-ink:#ffc94a;--shadow:0 1px 2px rgba(0,0,0,.4);color-scheme:dark}
+  --gap:#d6a0ff;--sat:#f472b6;--sun:#facc15;--sat-ink:#2a0717;--sun-ink:#211a00;--unpaid:#9db8ff;--reset:#f59e0b;--reset-ink:#2a1700;--clear:#2dd4bf;--clear-ink:#02201c;--sign:#05090d;--sign-ink:#ffc94a;--shadow:0 1px 2px rgba(0,0,0,.4);color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 var(--f-body);font-variant-numeric:tabular-nums;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
@@ -216,6 +216,13 @@ details.more .sum{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space
 .seg{display:flex;flex-wrap:wrap;gap:8px}
 .seg button{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:15px}
 .seg button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.seg button.sat{border:2px solid var(--sat);color:var(--sat);font-weight:700;min-width:64px}
+.seg button.sat[aria-pressed=true]{background:var(--sat);border-color:var(--sat);color:var(--sat-ink)}
+.seg button.sun{border:2px solid var(--sun);color:var(--sun);font-weight:700;min-width:64px}
+.seg button.sun[aria-pressed=true]{background:var(--sun);border-color:var(--sun);color:var(--sun-ink)}
+.chip.sat span{background:var(--sat);border-color:var(--sat);color:var(--sat-ink)}
+.chip.sun span{background:var(--sun);border-color:var(--sun);color:var(--sun-ink)}
+.chip.sat i,.chip.sun i{color:inherit;opacity:.8}
 .fsel{height:48px;width:100%;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 12px;font-size:16px}
 .tog{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;cursor:pointer}
 .tog span{flex:1;min-width:0;font-weight:600;font-size:15.5px;line-height:1.25}
@@ -374,7 +381,7 @@ const ST={};
     const st=defState(d),sv=saved[d.name];
     if(sv&&typeof sv=='object'){
       if(d.days.includes(sv.day))st.day=sv.day;
-      if(d.opens.includes(sv.op))st.op=sv.op;
+      if(d.opens.includes(sv.op)||(d.hasOpen&&(sv.op=='@SAT'||sv.op=='@SUN')))st.op=sv.op;
       if(SORTS.some(o=>o[0]===sv.sort))st.sort=sv.sort;
       st.pl=sv.pl===true;st.es=sv.es===true;st.so=sv.so===true&&d.isWk;
       if(typeof sv.gp=='string'&&sv.gp.length<7)st.gp=sv.gp;
@@ -410,7 +417,7 @@ function gapLimit(st){const v=st.gp.trim().toLowerCase();return v?parseHM(v):nul
 function applyFilters(d,st){
   const q=st.q.trim().toLowerCase().split(/\s+/).filter(Boolean).map(t=>/^\d+$/.test(t)?new RegExp('(^|\\D)'+t+'(\\D|$)'):t);
   const {sec,day,op,onl,offl,rt,ea,pl,es}=st,lt=st.so&&d.isWk,gl=gapLimit(st),so=st.sort;
-  const res=d.shifts.filter(s=>(!sec||s.sec==sec)&&(!day||s.day==day)&&(!op||s.open==op)&&(!lt||(s.late&&s.day=='Sunday'))&&(!es||s.eos)&&(!ea.size||ea.has(s.runs[0][5])||(s.runs.length>1&&ea.has(s.runs[s.runs.length-2][5])))&&(gl===null||s.mg<=gl)&&(!pl||s.totm>=534)&&(!rt.size||!s.rs.some(r=>rt.has(r)))&&!onl.has(s.runs[0][2])&&!offl.has(s.runs[s.runs.length-1][5])&&q.every(t=>typeof t=='string'?s.h.includes(t):t.test(s.h)));
+  const res=d.shifts.filter(s=>(!sec||s.sec==sec)&&(!day||s.day==day)&&(!op||(op=='@SAT'?/SAT/.test(s.open):op=='@SUN'?/SUN/.test(s.open):s.open==op))&&(!lt||(s.late&&s.day=='Sunday'))&&(!es||s.eos)&&(!ea.size||ea.has(s.runs[0][5])||(s.runs.length>1&&ea.has(s.runs[s.runs.length-2][5])))&&(gl===null||s.mg<=gl)&&(!pl||s.totm>=534)&&(!rt.size||!s.rs.some(r=>rt.has(r)))&&!onl.has(s.runs[0][2])&&!offl.has(s.runs[s.runs.length-1][5])&&q.every(t=>typeof t=='string'?s.h.includes(t):t.test(s.h)));
   if(so=='hi'||so=='lo')res.sort((a,b)=>so=='hi'?b.totm-a.totm:a.totm-b.totm);
   else if(so=='sh'||so=='sl')res.sort((a,b)=>so=='sh'?b.spm-a.spm:a.spm-b.spm);
   return res;
@@ -418,7 +425,7 @@ function applyFilters(d,st){
 function activeFilters(d,st){
   const a=[],gl=gapLimit(st);
   if(d.hasDay&&st.day)a.push({id:'day',t:st.day});
-  if(d.hasOpen&&st.op)a.push({id:'op',t:'Open '+st.op});
+  if(d.hasOpen&&st.op)a.push({id:'op',t:st.op=='@SAT'?'Open any Sat':st.op=='@SUN'?'Open any Sun':'Open '+st.op,c:st.op=='@SAT'?'sat':st.op=='@SUN'?'sun':''});
   if(st.rt.size)a.push({id:'rt',t:'Downtown '+st.rt.size+'/'+ROUTES.length+' excluded',c:'warn'});
   if(st.onl.size)a.push({id:'onl',t:'On location: '+st.onl.size+' hidden',c:'warn'});
   if(st.offl.size)a.push({id:'offl',t:'Off location: '+st.offl.size+' hidden',c:'warn'});
@@ -570,7 +577,14 @@ function panelHTML(){
   const d=D(),st=S(),gl=gapLimit(st),bad=!!st.gp.trim()&&gl===null;
   let h='<div class="fg"><label class="fl" for="f_sort">Sort</label><select class="fsel" id="f_sort">'+SORTS.map(o=>'<option value="'+o[0]+'"'+(st.sort==o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select></div>';
   if(d.hasDay)h+=segHTML('day','Day',d.days,st.day,'All days');
-  if(d.hasOpen)h+=segHTML('op','Open on',d.opens,st.op,'Any date');
+  if(d.hasOpen){
+    const ord=v=>(v.startsWith('SAT')?0:1)*10+(v.includes(',')?2:v.endsWith('2')?1:0);
+    const L=d.opens.slice().sort((a,b)=>ord(a)-ord(b));
+    const b=(v,t,c)=>'<button type="button" data-set="op" data-v="'+esc(v)+'" aria-pressed="'+(st.op==v)+'"'+(c?' class="'+c+'"':'')+'>'+esc(t)+'</button>';
+    h+='<div class="fg"><div class="fl">Open on</div><div class="seg">'+b('','Any date')+'</div>'
+      +'<div class="seg">'+b('@SAT','Sat','sat')+L.filter(v=>v.startsWith('SAT')).map(v=>b(v,v)).join('')+'</div>'
+      +'<div class="seg">'+b('@SUN','Sun','sun')+L.filter(v=>v.startsWith('SUN')).map(v=>b(v,v)).join('')+'</div></div>';
+  }
   h+='<div class="fg"><div class="fl">Routes</div>'+msHTML(d,st,'rt','Exclude Downtown','Excluded','warn',true)+'</div>';
   h+='<div class="fg"><div class="fl">Start and finish</div>'+msHTML(d,st,'onl','On Location','Hidden','',false)+msHTML(d,st,'offl','Off Location','Hidden','',false)+'</div>';
   h+='<div class="fg"><div class="fl">Work</div><label class="tog"><span>Exclude work under 8:54 plat<small>Gives 5 days off in two weeks</small></span><input type="checkbox" id="f_pl"'+(st.pl?' checked':'')+'></label>';
