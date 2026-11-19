@@ -254,6 +254,8 @@ def main():
         'const DAYOFF=' + json.dumps(state['dayoff']['data'], ensure_ascii=False, separators=(',', ':')) + ';',
         'const VAC=' + json.dumps(state['vac']['data'], ensure_ascii=False, separators=(',', ':')) + ';',
         'const SPARE=' + json.dumps({n: state['sheets'][n]['spare'] for n, *_ in SHEETS if state['sheets'][n]['spare']}, ensure_ascii=False) + ';',
+        'const MINE=' + (json.dumps(json.load(open(P('data', 'my-work.json'), encoding='utf8')), ensure_ascii=False, separators=(',', ':'))
+                         if os.path.exists(P('data', 'my-work.json')) else 'null') + ';',
     ])
     tpl = open(P('build', 'template.html'), encoding='utf8').read()
     body = (tpl.replace('/*__DATA__*/', data_js, 1).replace('__ASOF__', asof, 1)
@@ -266,6 +268,11 @@ def main():
             '[hidden]{display:none!important}</style></head><body>\n')
     os.makedirs(P('site'), exist_ok=True)
     open(P('site', 'index.html'), 'w', encoding='utf8').write(head + body + '\n</body></html>\n')
+    # Extra ready-made pages (e.g. My Work): build/my-work.html -> site/my-work.html
+    extra = P('build', 'my-work.html')
+    if os.path.exists(extra):
+        open(P('site', 'my-work.html'), 'w', encoding='utf8').write(open(extra, encoding='utf8').read())
+        print('Copied build/my-work.html to site/my-work.html')
     json.dump(state, open(P('data', 'state.json'), 'w', encoding='utf8'), ensure_ascii=False, separators=(',', ':'))
     json.dump(routes, open(P('data', 'routes.json'), 'w', encoding='utf8'), ensure_ascii=False, separators=(',', ':'), sort_keys=True)
     print('\nBuilt site/index.html, data as of %s' % asof)
