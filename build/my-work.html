@@ -46,6 +46,48 @@ button{cursor:pointer;touch-action:manipulation}
 .mast .grow{flex:1;min-width:0}
 .thm{flex:none;min-height:44px;min-width:44px;padding:0 12px;border:1px solid var(--line);background:var(--surface);border-radius:22px;font-size:13px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:6px}
 .thm svg{width:16px;height:16px}
+:root[data-skin="winter"][data-skin]{--bg:#e8f2fb;--surface:#ffffff;--surface2:#eef6fd;--ink:#0f2a44;--ink2:#3d5a75;--ink3:#7890a8;--line:#cfe0ee;--rail:#a9c3d9;--accent:#0b6fb3;--accent-ink:#ffffff;--accent-soft:#dcecf9;--star:#6d5bd0;--good:#0f7c74;--good-soft:#dcf2ef;--gap:#6d4bd8;--sat:#2563eb;--sat-ink:#ffffff;--sun:#0e7490;--sun-ink:#ffffff;--unpaid:#1e3a8a;--sign:#0f2a44;--sign-ink:#bfe3ff;--pay:#0f7c74;--lime:#bfe3ff;--lime-ink:#0f2a44;--bad:#b4232a;--bad-soft:#fdecec;--shadow:0 1px 2px rgba(15,42,68,.06),0 6px 18px rgba(11,111,179,.08)}
+:root[data-skin="winter"][data-skin]{color-scheme:light}
+:root[data-skin="winter"][data-skin] body{background:radial-gradient(circle at 12% 8%,rgba(255,255,255,.95) 0 2px,transparent 3px) 0 0/46px 46px,radial-gradient(circle at 60% 40%,rgba(255,255,255,.85) 0 1.5px,transparent 2.5px) 0 0/31px 31px,var(--bg)}
+:root[data-skin="winter"][data-skin] .nxh span,:root[data-skin="winter"][data-skin] .pdwhen{background:linear-gradient(115deg,#0b6fb3,#38bdf8,#6366f1)!important;box-shadow:0 4px 14px rgba(11,111,179,.3)!important}
+:root[data-skin="cyberpunk"][data-skin]{--bg:#0b0716;--surface:#150d26;--surface2:#1f1336;--ink:#f5e9ff;--ink2:#c9aef0;--ink3:#8c74b0;--line:#3a2560;--rail:#5a3d8a;--accent:#ff2fb3;--accent-ink:#14001c;--accent-soft:#3b0f38;--star:#fcee0a;--good:#00f0c8;--good-soft:#06302d;--gap:#ffa62b;--sat:#fcee0a;--sat-ink:#141400;--sun:#00e5ff;--sun-ink:#001318;--unpaid:#8ab4ff;--sign:#fcee0a;--sign-ink:#14001c;--pay:#00f0c8;--lime:#fcee0a;--lime-ink:#141400;--bad:#ff5470;--bad-soft:#3a0d18;--shadow:0 0 0 1px rgba(255,47,179,.25),0 0 18px rgba(255,47,179,.18)}
+:root[data-skin="cyberpunk"][data-skin]{color-scheme:dark}
+:root[data-skin="cyberpunk"][data-skin] body{background:linear-gradient(rgba(255,47,179,.07) 1px,transparent 1px) 0 0/100% 28px,linear-gradient(90deg,rgba(0,229,255,.05) 1px,transparent 1px) 0 0/28px 100%,var(--bg)}
+:root[data-skin="cyberpunk"][data-skin] h1{text-shadow:0 0 12px rgba(255,47,179,.7),2px 0 0 rgba(0,229,255,.6)}
+:root[data-skin="cyberpunk"][data-skin] .nxh span,:root[data-skin="cyberpunk"][data-skin] .pdwhen{background:linear-gradient(115deg,#ff2fb3,#7c3aed,#00e5ff)!important;box-shadow:0 0 18px rgba(255,47,179,.55)!important}
+:root[data-skin="bus"][data-skin]{--bg:#f4f4f2;--surface:#ffffff;--surface2:#f7f7f5;--ink:#1d1d1f;--ink2:#4a4a4f;--ink3:#86868c;--line:#dcdcdf;--rail:#b8b8bd;--accent:#d6202e;--accent-ink:#ffffff;--accent-soft:#fbe4e6;--star:#d97706;--good:#2e7d32;--good-soft:#e3f4e5;--gap:#7c3aed;--sat:#d6202e;--sat-ink:#ffffff;--sun:#a1182a;--sun-ink:#ffffff;--unpaid:#1e3a8a;--sign:#1d1d1f;--sign-ink:#ffb000;--pay:#2e7d32;--lime:#d6202e;--lime-ink:#ffffff;--bad:#b4121f;--bad-soft:#fdeceb;--shadow:0 1px 2px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.06)}
+:root[data-skin="bus"][data-skin]{color-scheme:light}
+:root[data-skin="bus"][data-skin] .mast{border-top:10px solid transparent;border-image:linear-gradient(#d6202e 0 6px,#fff 6px 8px,#d6202e 8px) 10}
+:root[data-skin="bus"][data-skin] .sign{font-family:ui-monospace,Menlo,monospace!important;letter-spacing:.08em}
+:root[data-skin="bus"][data-skin] .nxh span,:root[data-skin="bus"][data-skin] .pdwhen{background:#1d1d1f!important;color:#ffb000!important;text-shadow:0 0 6px rgba(255,176,0,.55)!important;box-shadow:0 0 0 2px #d6202e inset,0 4px 12px rgba(0,0,0,.2)!important}
+:root[data-skin="bus"][data-skin] .pdwhen span,:root[data-skin="bus"][data-skin] .pdwhen span b{color:#ffb000!important}
+:root[data-skin="bw"][data-skin]{--bg:#ffffff;--surface:#ffffff;--surface2:#f1f1f1;--ink:#000000;--ink2:#333333;--ink3:#6b6b6b;--line:#c8c8c8;--rail:#9a9a9a;--accent:#000000;--accent-ink:#ffffff;--accent-soft:#e9e9e9;--star:#000000;--good:#000000;--good-soft:#ececec;--gap:#444444;--sat:#222222;--sat-ink:#ffffff;--sun:#555555;--sun-ink:#ffffff;--unpaid:#000000;--sign:#000000;--sign-ink:#ffffff;--pay:#000000;--lime:#000000;--lime-ink:#ffffff;--bad:#000000;--bad-soft:#eeeeee;--shadow:0 0 0 1px #d0d0d0}
+:root[data-skin="bw"][data-skin]{color-scheme:light}
+:root[data-skin="bw"][data-skin] .mast,:root[data-skin="bw"][data-skin] .mwmain,:root[data-skin="bw"][data-skin] .tabbar,:root[data-skin="bw"][data-skin] .skinsheet{filter:grayscale(1)}
+:root[data-skin="cyberpunk"][data-skin] section.mymon .mymh,:root[data-skin="cyberpunk"][data-skin] .list summary.mywhen{background:#1a0b2e;color:#ff6fd0;box-shadow:inset 0 0 0 1.5px #ff2fb3,0 0 14px rgba(255,47,179,.35)}
+:root[data-skin="cyberpunk"][data-skin] section.mymon .mymh span{color:#00e5ff;opacity:1}
+html[data-skin] section.mymon .mymh,html[data-skin] .list summary.mywhen{background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 16%,var(--surface)),color-mix(in srgb,var(--sat) 14%,var(--surface)) 60%,color-mix(in srgb,var(--star) 16%,var(--surface)));color:var(--ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 22%,transparent)}
+html[data-skin] section.mymon .mymh span{color:var(--accent);opacity:1}
+html[data-skin] section.mymon .mymh small{color:var(--ink2);opacity:1}
+:root[data-skin="bus"][data-skin] section.mymon .mymh,:root[data-skin="bus"][data-skin] .list summary.mywhen{background:linear-gradient(120deg,#e3f4e5,#d3eedb 55%,#ecf8ef);color:#1b4d2a;box-shadow:inset 0 0 0 1px #b9dfc2}
+:root[data-skin="bus"][data-skin] section.mymon .mymh span{color:#2e7d32}
+:root[data-skin="bus"][data-skin] section.mymon .mymh small{color:#3f6b4b}
+:root[data-skin]:not([data-skin="normal"]) #thm{display:none}
+.skb{flex:none;min-height:44px;min-width:44px;padding:0 12px;border:1px solid var(--line);background:var(--surface);border-radius:22px;font-size:13px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:6px;cursor:pointer}
+.skb svg{width:16px;height:16px}
+.mast .inner{gap:8px}
+.skinsheet{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45)}
+.skinsheet[hidden]{display:none}
+.skp{width:100%;max-width:560px;background:var(--surface);color:var(--ink);border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+.skp h2{margin:0 0 12px;font:700 18px var(--f-num)}
+.skl{display:grid;gap:8px}
+.sko{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface2);color:var(--ink);font:600 15px var(--f-body);cursor:pointer}
+.sko.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.sko small{display:block;font-weight:500;font-size:12.5px;color:var(--ink3)}
+.sksw{display:flex;border-radius:8px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.sksw i{width:16px;height:30px}
+.skchk{font:700 16px var(--f-num);color:var(--accent);visibility:hidden}
+.sko.on .skchk{visibility:visible}
 
 /* sticky bar */
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg)}
@@ -462,8 +504,10 @@ summary.mywhen::-webkit-details-marker{display:none}
   <div class="grow">
     <h1>My Work <span class="sign">Winter 2027</span></h1>
   </div>
+  <button class="skb" id="skb" type="button" aria-haspopup="dialog" aria-label="Choose a theme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8a6.2 6.2 0 100 12.4c.9 0 1.3-.6 1.3-1.2 0-.9-.8-1.1-.8-1.9 0-.7.6-1.2 1.3-1.2h1.4c1.7 0 3-1.3 3-3C14.2 4.1 11.5 1.8 8 1.8z"/><circle cx="5" cy="6.6" r=".9"/><circle cx="7.8" cy="4.6" r=".9"/><circle cx="10.8" cy="6" r=".9"/></svg>Theme</button>
   <button class="thm" id="thm" type="button" aria-label="Change theme"></button>
 </div></div>
+<div class="skinsheet" id="skinsheet" hidden><div class="skp" role="dialog" aria-modal="true" aria-labelledby="skh"><h2 id="skh">Theme</h2><div class="skl" id="skl"></div></div></div>
 
 <main class="gut mwmain"><div class="inner" id="view"></div></main>
 <nav class="tabbar" aria-label="Views"><div id="mytabs" class="mytabs"></div></nav>
@@ -524,6 +568,19 @@ function applyTheme(){
   $('thm').setAttribute('aria-label','Theme: '+TH+'. Tap to change');
 }
 $('thm').onclick=()=>{TH=TH=='auto'?'light':TH=='light'?'dark':'auto';lsSet('open-shifts-theme',TH);applyTheme()};
+const SKINS=[['normal','Normal','Light or dark, follows the Auto button',['#edf0f4','#1b56c4','#13202c','#a3e635']],
+ ['winter','Winter','Icy blues with falling snow',['#e8f2fb','#0b6fb3','#38bdf8','#0f2a44']],
+ ['cyberpunk','Cyberpunk','Neon pink and cyan on midnight',['#0b0716','#ff2fb3','#00e5ff','#fcee0a']],
+ ['bus','Bus operator','Transit red and white, green bands, amber sign',['#d6202e','#ffffff','#d3eedb','#1d1d1f']],
+ ['bw','B&W','Black and white, high contrast',['#ffffff','#000000','#9a9a9a','#e9e9e9']]];
+let SKIN='normal';try{SKIN=localStorage.getItem('my-work-skin')||'normal'}catch(e){}
+function applySkin(){if(SKIN=='normal')document.documentElement.removeAttribute('data-skin');else document.documentElement.setAttribute('data-skin',SKIN);
+  $('skl').innerHTML=SKINS.map(k=>'<button type="button" class="sko'+(k[0]==SKIN?' on':'')+'" data-skin="'+k[0]+'" aria-pressed="'+(k[0]==SKIN)+'"><span class="sksw">'+k[3].map(c=>'<i style="background:'+c+'"></i>').join('')+'</span><span>'+k[1]+'<small>'+k[2]+'</small></span><span class="skchk">✓</span></button>').join('')}
+applySkin();
+const skOpen=()=>{$('skinsheet').hidden=false;const b=$('skl').querySelector('.on');if(b)b.focus()},skClose=()=>{$('skinsheet').hidden=true;$('skb').focus()};
+$('skb').onclick=skOpen;
+$('skinsheet').addEventListener('click',e=>{const b=e.target.closest('[data-skin]');if(b){SKIN=b.dataset.skin;try{localStorage.setItem('my-work-skin',SKIN)}catch(x){}applySkin();skClose();return}if(e.target.id=='skinsheet')skClose()});
+document.addEventListener('keydown',e=>{if(e.key=='Escape'&&!$('skinsheet').hidden)skClose()});
 applyTheme();
 
 /* ---------- my booked work ---------- */
