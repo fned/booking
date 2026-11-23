@@ -9,6 +9,7 @@ updates data/state.json and data/routes.json.
 Needs Python 3 and pdftotext (poppler-utils). No other packages.
 """
 import json, os, re, subprocess, sys
+import route_maps
 from datetime import datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -268,6 +269,9 @@ def main():
             '[hidden]{display:none!important}</style></head><body>\n')
     os.makedirs(P('site'), exist_ok=True)
     open(P('site', 'index.html'), 'w', encoding='utf8').write(head + body + '\n</body></html>\n')
+    # Route maps for the Runs tab (site/routes/<route>.json), refreshed weekly from OC Transpo's GTFS
+    maps = route_maps.refresh(P('data', 'route-maps.json'))
+    if maps: route_maps.write_site(maps, P('site'))
     # Extra ready-made pages (e.g. My Work): build/my-work.html -> site/my-work.html
     extra = P('build', 'my-work.html')
     if os.path.exists(extra):

@@ -57,6 +57,27 @@ button{cursor:pointer;touch-action:manipulation}
 .rnno{font:800 24px/1 var(--f-num);color:var(--accent)}
 .rnmap{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:0;border-radius:999px;background:var(--good);color:var(--surface);font:700 12.5px var(--f-num);letter-spacing:.02em;cursor:pointer}
 .rnmap svg{width:13px;height:13px}
+.rnsheet{position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;background:var(--bg);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.rnsheet[hidden]{display:none}
+.rnbar{display:flex;align-items:center;gap:10px;padding:10px max(16px,env(safe-area-inset-left,0px)) 8px;background:var(--surface);border-bottom:1px solid var(--line)}
+.rnbar .rnno{font-size:28px;min-width:44px;text-align:center}
+.rnttl{flex:1 1 auto;min-width:0}
+.rnttl b{display:block;font:700 15px/1.2 var(--f-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rnttl small{display:block;font:500 12.5px var(--f-body);color:var(--ink3)}
+.rnx{flex:0 0 auto;width:44px;height:44px;border:0;border-radius:999px;background:var(--surface2);display:grid;place-items:center}
+.rnx svg{width:20px;height:20px}
+.rndirs{display:flex;gap:8px;overflow-x:auto;padding:8px max(16px,env(safe-area-inset-left,0px));background:var(--surface);border-bottom:1px solid var(--line)}
+.rndir{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:4px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);font:600 14px var(--f-body);color:var(--ink2)}
+.rndir i{width:14px;height:4px;border-radius:2px;background:var(--c)}
+.rndir[aria-pressed=true]{border-color:var(--c);color:var(--ink);background:var(--surface2)}
+.rnmapbox{flex:1 1 auto;position:relative;min-height:0}
+#rnmap{position:absolute;inset:0;background:var(--surface2)}
+.rnmsg{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--ink2);font-size:15px;z-index:500}
+.rnmsg[hidden]{display:none}
+.rnsheet .leaflet-popup-content{font:14px/1.3 var(--f-body);margin:8px 12px}
+.rnsheet .leaflet-popup-content small{color:#5d6b78}
+:root[data-theme="dark"] .rnsheet .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.9)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rnsheet .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.9)}}
 .mytbc strong{font-weight:800}
 .mychip .vdt{font-weight:600;color:var(--ink2)}
 .mylist dd.one.wrap{flex-wrap:wrap;overflow:visible}
@@ -531,6 +552,7 @@ summary.mywhen::-webkit-details-marker{display:none}
 
 <main class="gut mwmain"><div class="inner" id="view"></div></main>
 <nav class="tabbar" aria-label="Views"><div id="mytabs" class="mytabs"></div></nav>
+<div class="rnsheet" id="rnsheet" hidden role="dialog" aria-modal="true" aria-labelledby="rnttl"><div class="rnbar"><span class="rnno" id="rnno"></span><div class="rnttl"><b id="rnttl"></b><small id="rnsub"></small></div><button type="button" class="rnx" id="rnx" aria-label="Close map"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg></button></div><div class="rndirs" id="rndirs" hidden></div><div class="rnmapbox"><div id="rnmap"></div><div class="rnmsg" id="rnmsg" hidden></div></div></div>
 
 
 <script>
@@ -760,6 +782,84 @@ $('view').addEventListener('keydown',e=>{const h=e.target.closest('[data-mon]');
 $('view').addEventListener('click',e=>{const ma=e.target.closest('#myall');if(ma){const open=ma.getAttribute('aria-pressed')!='true';document.querySelectorAll('.mygrp').forEach(d=>d.open=open);ma.setAttribute('aria-pressed',open);ma.textContent=open?'Collapse all':'Expand all';return}const pg=e.target.closest('[data-padgo]');if(pg){if(pg.dataset.padgo)padKey=pg.dataset.padgo;myTab='all';lsSet('my-work-tab',myTab);renderMine();window.scrollTo(0,0);return}const pk=e.target.closest('[data-pad]');if(pk){padKey=pk.dataset.pad;renderMine();return}const hm=e.target.closest('[data-mon]');if(hm){togMon(hm);return}const b=e.target.closest('[data-day]');if(!b)return;mySel=(b.classList.contains('myc')&&mySel==b.dataset.day)?'':b.dataset.day;const y=window.scrollY;renderMine();window.scrollTo(0,y);if(b.classList.contains('mynext')){const [yy,mm]=b.dataset.day.split('-');myOpen&&myOpen.add(+yy*12+(+mm)-1);myTab='cal';lsSet('my-work-tab',myTab);renderMine();const d=$('mydet');if(d)d.scrollIntoView({block:'center'})}});
 
 renderMine();
+
+/* Route maps (Runs tab). Same logic as whereisbus: the build turns OC Transpo's static GTFS
+   into one small file per route (routes/<route>.json) holding each direction's paths as
+   encoded polylines plus their stops; the page fetches only the route you open and draws it with Leaflet. */
+const RNCOL=['#1b56c4','#c2410c'];
+let rnMap=null,rnLayers=[],rnStopG=null,rnData=null,rnOn=[true,true],rnLast=null,rnReq=0;
+function loadLeaflet(){
+  if(window.L)return Promise.resolve();
+  if(loadLeaflet.p)return loadLeaflet.p;
+  return loadLeaflet.p=new Promise((ok,no)=>{
+    const c=document.createElement('link');c.rel='stylesheet';c.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(c);
+    const j=document.createElement('script');j.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';j.onload=ok;j.onerror=()=>{loadLeaflet.p=null;no(new Error('map library'))};document.head.appendChild(j);
+  });
+}
+function decodePolyline(str){
+  const pts=[];let i=0,lat=0,lon=0;
+  const next=()=>{let r=0,s=0,b;do{b=str.charCodeAt(i++)-63;r|=(b&31)<<s;s+=5}while(b>=32);return r&1?~(r>>1):r>>1};
+  while(i<str.length){lat+=next();lon+=next();pts.push([lat/1e5,lon/1e5])}
+  return pts;
+}
+const rnCache=new Map();
+function routeFile(r){
+  if(!rnCache.has(r))rnCache.set(r,fetch('routes/'+encodeURIComponent(r)+'.json').then(x=>x.ok?x.json():x.status==404?null:Promise.reject(new Error('HTTP '+x.status))).catch(e=>{rnCache.delete(r);throw e}));
+  return rnCache.get(r);
+}
+function rnMsg(t){const m=$('rnmsg');m.hidden=!t;m.textContent=t||''}
+async function openRouteMap(r){
+  const id=++rnReq;rnLast=document.activeElement;
+  $('rnsheet').hidden=false;document.body.style.overflow='hidden';
+  $('rnno').textContent=r;$('rnttl').textContent='Route '+r;$('rnsub').textContent='Loading…';$('rndirs').hidden=true;rnMsg('Loading map…');$('rnx').focus();
+  let d;
+  try{await loadLeaflet();d=await routeFile(r)}
+  catch(e){if(id==rnReq){rnMsg(location.protocol=='file:'?'The map works on the published site, not from a file on this device.':'Could not load the map. Check your connection and try again.');$('rnsub').textContent=''}return}
+  if(id!=rnReq)return;
+  if(!rnMap){
+    rnMap=L.map('rnmap',{zoomControl:true,zoomSnap:.25}).setView([45.4215,-75.6972],12);
+    rnMap.on('zoomend',rnStops);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Routes &copy; OC Transpo'}).addTo(rnMap);
+  }
+  if(!d){rnLayers.forEach(l=>l.remove());rnLayers=[];rnData=null;$('rnsub').textContent='';rnMsg('Route '+r+' is not in OC Transpo’s current schedule, so there is no map for it yet. It should appear once the schedule that includes it is published.');return}
+  rnMsg('');rnData=d;rnOn=[true,true];
+  $('rnttl').textContent=d.name||('Route '+r);
+  $('rnsub').textContent='Paths and stops from OC Transpo’s schedule'+(d.gtfs?' ('+d.gtfs+')':'');
+  const dirs=[0,1].filter(k=>d.paths.some(p=>p.dir==k));
+  $('rndirs').innerHTML=dirs.map(k=>{const m=d.paths.find(p=>p.dir==k&&p.main)||d.paths.find(p=>p.dir==k);return '<button type="button" class="rndir" data-dir="'+k+'" aria-pressed="true" style="--c:'+RNCOL[k]+'"><i></i>To '+esc(m.to||('direction '+(k+1)))+'</button>'}).join('');
+  $('rndirs').hidden=false;
+  rnMap.invalidateSize();
+  drawRoute(true);
+}
+function drawRoute(fit){
+  rnLayers.forEach(l=>l.remove());rnLayers=[];
+  const d=rnData;if(!d)return;
+  const all=[];rnStopG=L.layerGroup();rnLayers.push(rnStopG);
+  // variants first so the main path sits on top
+  [...d.paths].sort((a,b)=>a.main-b.main).forEach(p=>{
+    if(!rnOn[p.dir])return;
+    const pts=decodePolyline(p.p),c=RNCOL[p.dir]||RNCOL[0];all.push(...pts);
+    const ln=L.polyline(pts,p.main?{color:c,weight:5,opacity:.9,lineJoin:'round'}:{color:c,weight:3.5,opacity:.75,dashArray:'7 7',lineJoin:'round'}).addTo(rnMap);
+    ln.bindPopup('<b>To '+esc(p.to)+'</b><br><small>'+(p.main?'Main path':'Other path')+' · '+p.trips+' trips a week in this schedule</small>');
+    rnLayers.push(ln);
+    if(!p.main)return;
+    p.stops.forEach((s,k)=>{
+      const end=k==0||k==p.stops.length-1;
+      const m=L.circleMarker([s[1],s[2]],{radius:end?7:4,color:c,weight:2,fillColor:end?c:'#fff',fillOpacity:1});
+      if(end){m.addTo(rnMap);rnLayers.push(m)}else rnStopG.addLayer(m);
+      m.bindPopup('<b>'+esc(s[0])+'</b>'+(s[3]?'<br><small>Stop '+esc(s[3])+'</small>':'')+(end?'<br><small>'+(k==0?'First stop':'Last stop')+' · to '+esc(p.to)+'</small>':''));
+    });
+  });
+  if(fit&&all.length)rnMap.fitBounds(all,{padding:[24,24]});
+  rnStops();
+}
+// every stop only once zoomed in; first and last stops always
+function rnStops(){if(!rnStopG)return;const on=rnMap.getZoom()>=13.5;if(on&&!rnMap.hasLayer(rnStopG))rnStopG.addTo(rnMap);if(!on&&rnMap.hasLayer(rnStopG))rnStopG.remove()}
+function closeRouteMap(){rnReq++;$('rnsheet').hidden=true;document.body.style.overflow='';if(rnMap)rnMap.closePopup();if(rnLast&&rnLast.focus)rnLast.focus()}
+$('rnx').addEventListener('click',closeRouteMap);
+$('rndirs').addEventListener('click',e=>{const b=e.target.closest('[data-dir]');if(!b)return;const k=+b.dataset.dir;rnOn[k]=!rnOn[k];if(!rnOn[0]&&!rnOn[1])rnOn[1-k]=true;$('rndirs').querySelectorAll('[data-dir]').forEach(x=>x.setAttribute('aria-pressed',rnOn[+x.dataset.dir]));drawRoute(true)});
+document.addEventListener('keydown',e=>{if(e.key=='Escape'&&!$('rnsheet').hidden)closeRouteMap()});
+$('view').addEventListener('click',e=>{const b=e.target.closest('.rnmap[data-route]');if(b)openRouteMap(b.dataset.route)});
 </script>
 
 </body></html>

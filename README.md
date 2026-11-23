@@ -37,6 +37,9 @@ Notes:
 - If a report can't be read, the build stops with a red cross and **the live site is left as it was**.
   Click the failed run in **Actions** to see which file and why.
 - Days Off is not read from PDFs yet; it shows the November 13 figures.
+- The **Map** buttons in the Runs tab (My Work page) show each route's paths and stops from OC Transpo's
+  published schedule (GTFS). A build refreshes them when they are more than 6 days old; if the download fails,
+  the saved maps are used. A route that isn't in the current schedule says so instead of showing a map.
 
 ## Privacy
 
@@ -53,5 +56,7 @@ Notes:
 | `build/template.html` | The page design. |
 | `build/stations.js` | Station route images. |
 | `data/state.json` | The current figures for every sheet, updated by each build. |
+| `build/route_maps.py` | Builds the Runs tab route maps from OC Transpo's GTFS (same method as the whereisbus site). |
+| `data/route-maps.json` | Saved route maps: each route's paths and stops. |
 | `data/routes.json` | Route order for each run (the PDFs only list routes sorted, without repeats). |
 | `.github/workflows/build.yml` | Tells GitHub to build and publish when reports change. |
