@@ -48,6 +48,15 @@ button{cursor:pointer;touch-action:manipulation}
 .thm svg{width:16px;height:16px}
 .mytoolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-4px 0 10px}
 .mytbinfo{display:flex;flex-wrap:wrap;gap:5px;min-width:0;flex:1 1 0}
+.rnlist{display:grid;gap:12px}
+.rngrp{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:12px}
+.rnh{margin:0 0 10px;font:700 15px var(--f-body);color:var(--ink2)}
+.rnh b{font:800 18px var(--f-num);color:var(--ink);margin-left:4px}
+.rnroutes{display:flex;flex-wrap:wrap;gap:10px}
+.rnr{display:grid;justify-items:center;gap:6px;min-width:64px;padding:8px 8px 9px;border-radius:12px;background:var(--surface2);border:1px solid var(--line)}
+.rnno{font:800 24px/1 var(--f-num);color:var(--accent)}
+.rnmap{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:0;border-radius:999px;background:var(--good);color:var(--surface);font:700 12.5px var(--f-num);letter-spacing:.02em;cursor:pointer}
+.rnmap svg{width:13px;height:13px}
 .mytbc strong{font-weight:800}
 .mychip .vdt{font-weight:600;color:var(--ink2)}
 .mylist dd.one.wrap{flex-wrap:wrap;overflow:visible}
@@ -488,11 +497,11 @@ summary.mywhen::-webkit-details-marker{display:none}
 </style>
 <style>
 .mwmain{padding-block:12px calc(var(--tab-h) + env(safe-area-inset-bottom,0px) + 28px)}
-.tabbar div.mytabs{grid-template-columns:repeat(5,minmax(0,1fr));max-width:720px}
+.tabbar div.mytabs{grid-template-columns:repeat(6,minmax(0,1fr));max-width:820px}
 .mytabs button{font-size:12.5px;white-space:nowrap}
 .mytabs button{font-size:11.5px}
-@media (max-width:400px){.mytabs button{font-size:10.5px;letter-spacing:-.02em}}
-@media (max-width:340px){.mytabs button{font-size:9.5px}}
+@media (max-width:400px){.mytabs button{font-size:9.8px;letter-spacing:-.03em}}
+@media (max-width:340px){.mytabs button{font-size:8.6px}}
 :root{--pay:#15803d}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pay:#4ade80}}
 :root[data-theme="dark"]{--pay:#4ade80}
@@ -661,10 +670,11 @@ function renderMine(){
   if(myTab=='sum')h=hsum;
   if(myTab=='pad')h=paddleHTML(S,C,today,'cur');
   if(myTab=='all')h=paddleHTML(S,C,today,'all');
+  if(myTab=='runs')h=runsHTML(S,C,today);
   if(myTab=='shifts')h='<h2 class="h2">Booked work</h2><div class="mytoolbar"><div class="mytbinfo"><span class="mytbc">Off Week 1: <strong>'+MINE.daysOff['1'].map(d=>d+' 1').join(', ')+'</strong></span><span class="mytbc">Off Week 2: <strong>'+MINE.daysOff['2'].map(d=>d+' 2').join(', ')+'</strong></span>'+MINE.vacationWeeks.map(w=>{const a=ud(MINE.anchor)+(w-1)*7*DMS,z=a+6*DMS,A=new Date(a),Z=new Date(z);return '<span class="mytbc vac">Vacation: <strong>Week '+w+' ('+MONS[A.getUTCMonth()]+' '+A.getUTCDate()+'\u2013'+(Z.getUTCMonth()!=A.getUTCMonth()?MONS[Z.getUTCMonth()]+' ':'')+Z.getUTCDate()+')</strong></span>'}).join('')+'</div><button type="button" class="myall" id="myall" aria-pressed="false">Expand all</button></div><div class="list">'+Object.entries(S).map(([key,x])=>'<details class="mygrp"><summary class="mywhen">'+esc(x.when)+'<span class="mychev" aria-hidden="true"></span></summary>'+cardHTML(x,{hasPay:x.hasPay,hasDay:false,hasOpen:false},false,0,1,{mine:true,label:x.label,pad:PADDLE[key]?key:''})+'</details>').join('')+'</div>';
   $('view').innerHTML=h;
   fitOne();
-  $('mytabs').innerHTML=[['sum','Summary','<path d="M4 19V9M10 19V5M16 19v-7M21 19H3"/>'],['pad','Shift Paddle','<rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4V3h6v1M8.5 9.5h7M8.5 13h7M8.5 16.5h4"/>'],['cal','Calendar','<rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M8.5 3v4M15.5 3v4"/>'],['shifts','Booked Work','<rect x="3.5" y="7" width="17" height="12.5" rx="2.5"/><path d="M8.5 7V5.5A1.5 1.5 0 0110 4h4a1.5 1.5 0 011.5 1.5V7M3.5 12.5h17"/>'],['all','All Paddles','<rect x="7" y="3.5" width="13" height="15" rx="2"/><path d="M4 7v12.5A1.5 1.5 0 005.5 21H15M10.5 8h6M10.5 11.5h6M10.5 15h3.5"/>']].map(t=>'<button type="button" data-tab="'+t[0]+'"'+(myTab==t[0]?' aria-current="page"':'')+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+t[2]+'</svg>'+t[1]+'</button>').join('');
+  $('mytabs').innerHTML=[['sum','Summary','<path d="M4 19V9M10 19V5M16 19v-7M21 19H3"/>'],['pad','Shift Paddle','<rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4V3h6v1M8.5 9.5h7M8.5 13h7M8.5 16.5h4"/>'],['cal','Calendar','<rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M8.5 3v4M15.5 3v4"/>'],['shifts','Booked Work','<rect x="3.5" y="7" width="17" height="12.5" rx="2.5"/><path d="M8.5 7V5.5A1.5 1.5 0 0110 4h4a1.5 1.5 0 011.5 1.5V7M3.5 12.5h17"/>'],['all','All Paddles','<rect x="7" y="3.5" width="13" height="15" rx="2"/><path d="M4 7v12.5A1.5 1.5 0 005.5 21H15M10.5 8h6M10.5 11.5h6M10.5 15h3.5"/>'],['runs','Runs','<circle cx="6" cy="6" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M8.2 6H15a3 3 0 010 6H9a3 3 0 000 6h6.8"/>']].map(t=>'<button type="button" data-tab="'+t[0]+'"'+(myTab==t[0]?' aria-current="page"':'')+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+t[2]+'</svg>'+t[1]+'</button>').join('');
 }
 let myTab='sum';
 $('mytabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b||b.dataset.tab==myTab)return;myTab=b.dataset.tab;lsSet('my-work-tab',myTab);renderMine();window.scrollTo(0,0)});
@@ -735,6 +745,14 @@ function paddleHTML(S,C,today,mode){
   });
   return h;
 }
+
+function runsHTML(S,C,today){
+  const rt=[];
+  Object.values(S).forEach(x=>x.runs.forEach(p=>p[1].split(',').map(v=>v.trim()).filter(Boolean).forEach(v=>{if(!rt.includes(v))rt.push(v)})));
+  rt.sort((a,b)=>(parseInt(a)-parseInt(b))||a.localeCompare(b));
+  return '<h2 class="h2">Runs</h2><div class="rnroutes">'+rt.map(v=>'<div class="rnr"><span class="rnno">'+esc(v)+'</span><button type="button" class="rnmap" data-route="'+esc(v)+'"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M1.5 3.5l4-1.5 5 2 4-1.5v10l-4 1.5-5-2-4 1.5z"/><path d="M5.5 2v10M10.5 4v10"/></svg>Map</button></div>').join('')+'</div>';
+}
+
 function fitOne(){document.querySelectorAll('.mylist dd.one').forEach(d=>{d.classList.remove('t1','wrap');d.style.fontSize='';const over=()=>d.scrollWidth>d.clientWidth+1;if(over())d.classList.add('t1');let f=15;while(over()&&f>11){f-=.5;d.style.fontSize=f+'px'}if(over()){d.style.fontSize='';d.classList.add('wrap')}})}
 addEventListener('resize',fitOne);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitOne);
 const togMon=h=>{const m=+h.dataset.mon;myOpen.has(m)?myOpen.delete(m):myOpen.add(m);const y=window.scrollY;renderMine();window.scrollTo(0,y)};
