@@ -69,6 +69,17 @@ button{cursor:pointer;touch-action:manipulation}
 .mapbox{flex:1;min-height:0;background:var(--surface2)}
 .mapsheet.grey .leaflet-tile-pane{filter:grayscale(1) contrast(1.05)}
 .mapmsg{position:absolute;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));margin:0;padding:12px 14px;border-radius:12px;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-size:14px;z-index:500}
+.rnlist2{display:grid;gap:0;background:var(--surface);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.rnline{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;min-height:50px;padding:8px 12px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;cursor:pointer;font:inherit}
+.rnline:last-child{border-bottom:0}
+.rnline b{font:800 20px var(--f-num);color:var(--accent)}
+.rnline span{font:600 14.5px var(--f-num);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rnline i{font-style:normal;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;background:var(--good);color:var(--surface);font:700 12px var(--f-num)}
+.rnline i svg{width:13px;height:13px}
+.mapdirs{flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap}
+.mapdirs[hidden]{display:none}
+.mapdirs button{border:1.5px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:999px;padding:6px 12px;font:700 13.5px var(--f-num);cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mapdirs button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .mytbc strong{font-weight:800}
 .mychip .vdt{font-weight:600;color:var(--ink2)}
 .mylist dd.one.wrap{flex-wrap:wrap;overflow:visible}
@@ -539,7 +550,7 @@ summary.mywhen::-webkit-details-marker{display:none}
   <button class="skb" id="skb" type="button" aria-haspopup="dialog" aria-label="Choose a theme"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8a6.2 6.2 0 100 12.4c.9 0 1.3-.6 1.3-1.2 0-.9-.8-1.1-.8-1.9 0-.7.6-1.2 1.3-1.2h1.4c1.7 0 3-1.3 3-3C14.2 4.1 11.5 1.8 8 1.8z"/><circle cx="5" cy="6.6" r=".9"/><circle cx="7.8" cy="4.6" r=".9"/><circle cx="10.8" cy="6" r=".9"/></svg>Theme</button>
   <button class="thm" id="thm" type="button" aria-label="Change theme"></button>
 </div></div>
-<div class="mapsheet" id="mapsheet" hidden role="dialog" aria-modal="true" aria-labelledby="maptitle"><div class="maphd"><b id="maptitle">Route</b><div class="mapmodes" id="mapmodes"><button type="button" data-mm="c">Colour</button><button type="button" data-mm="g">Greyscale</button><button type="button" data-mm="s">Satellite</button></div><button type="button" class="mapx" id="mapclose" aria-label="Close map">✕</button></div><div class="mapbox" id="mapbox"></div><p class="mapmsg" id="mapmsg" hidden></p></div>
+<div class="mapsheet" id="mapsheet" hidden role="dialog" aria-modal="true" aria-labelledby="maptitle"><div class="maphd"><b id="maptitle">Route</b><div class="mapmodes" id="mapmodes"><button type="button" data-mm="c">Colour</button><button type="button" data-mm="g">Greyscale</button><button type="button" data-mm="s">Satellite</button></div><button type="button" class="mapx" id="mapclose" aria-label="Close map">✕</button><div class="mapdirs" id="mapdirs" hidden></div></div><div class="mapbox" id="mapbox"></div><p class="mapmsg" id="mapmsg" hidden></p></div>
 <div class="skinsheet" id="skinsheet" hidden><div class="skp" role="dialog" aria-modal="true" aria-labelledby="skh"><h2 id="skh">Theme</h2><div class="skl" id="skl"></div></div></div>
 
 <main class="gut mwmain"><div class="inner" id="view"></div></main>
@@ -772,8 +783,7 @@ function runsHTML(S,C,today){
   const rt=[];
   Object.values(S).forEach(x=>x.runs.forEach(p=>p[1].split(',').map(v=>v.trim()).filter(Boolean).forEach(v=>{if(!rt.includes(v))rt.push(v)})));
   rt.sort((a,b)=>(parseInt(a)-parseInt(b))||a.localeCompare(b));
-  const rows=[];rt.forEach(v=>{const d=routeDirs(v).sort((a,b)=>a.to.localeCompare(b.to));if(!d.length)rows.push({rt:v,to:'',i:-1});else d.forEach(x=>rows.push({rt:v,to:x.to,i:x.i}))});
-  return '<h2 class="h2">Runs</h2><div class="rnroutes">'+rows.map(r=>'<div class="rnr"><span class="rnno">'+esc(r.rt)+'</span><span class="rnto">'+esc(r.to||'—')+'</span><button type="button" class="rnmap" data-route="'+esc(r.rt)+'" data-to="'+esc(r.to)+'" data-dir="'+r.i+'"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M1.5 3.5l4-1.5 5 2 4-1.5v10l-4 1.5-5-2-4 1.5z"/><path d="M5.5 2v10M10.5 4v10"/></svg>Map</button></div>').join('')+'</div>';
+  return '<h2 class="h2">Runs</h2><div class="rnlist2">'+rt.map(v=>{const d=routeDirs(v).map(x=>x.to);return '<button type="button" class="rnline" data-route="'+esc(v)+'"><b>'+esc(v)+'</b><span>'+esc(d.length?d.join(' ⇄ '):'—')+'</span><i aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M1.5 3.5l4-1.5 5 2 4-1.5v10l-4 1.5-5-2-4 1.5z"/><path d="M5.5 2v10M10.5 4v10"/></svg>Map</i></button>'}).join('')+'</div>';
 }
 
 const MAPL={c:'Colour',g:'Greyscale',s:'Satellite'};let mapMode='c',LMAP=null,LTILE=null,LLINES=[];
@@ -791,11 +801,21 @@ function setMapMode(k){mapMode=k;try{localStorage.setItem('my-work-map',k)}catch
   LTILE=k=='s'?L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery &copy; Esri'})
              :L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'});
   LTILE.addTo(LMAP);LLINES.forEach(l=>l.setStyle({color:k=='s'?'#38bdf8':'#1b56c4'}))}
-function openMap(rt,to,di){
-  $('maptitle').textContent=rt+(to?' '+to:'');$('mapsheet').hidden=false;document.body.style.overflow='hidden';setMapMode(mapMode);
+let MAPRT='';
+function openMap(rt){
+  MAPRT=rt;$('mapsheet').hidden=false;document.body.style.overflow='hidden';setMapMode(mapMode);
+  const d=routeDirs(rt);
+  $('mapdirs').innerHTML=d.length?d.map((x,k)=>'<button type="button" data-dk="'+k+'">'+esc(x.to)+'</button>').join(''):'';
+  $('mapdirs').hidden=!d.length;
+  showDir(0);
+}
+function showDir(k){
+  const rt=MAPRT,d=routeDirs(rt),x=d[k]||{to:'',i:-1};
+  document.querySelectorAll('#mapdirs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dk==k));
+  $('maptitle').textContent=rt+(x.to?' → '+x.to:'');
   let sh=(typeof SHAPES!='undefined'&&SHAPES[rt])||null;
-  if(sh){const all=sh.map(x=>typeof x=='string'?{to:'',p:x}:x);const pick=all[+di]||all.find(x=>shortStop(x.to)==to);sh=pick?[pick.p]:null}
-  if(!sh){mapMsg('The route line for '+rt+(to?' to '+to:'')+' isn’t in this copy. Route lines are added when your GitHub site is built, so open My Work from your GitHub link.');}
+  if(sh){const all=sh.map(q=>typeof q=='string'?{to:'',p:q}:q);const pick=x.i>=0?all[x.i]:all.find(q=>shortStop(q.to)==x.to);sh=pick?[pick.p]:null}
+  if(!sh)mapMsg('The route line for '+rt+(x.to?' to '+x.to:'')+' isn’t in this copy. Route lines are added when your GitHub site is built, so open My Work from your GitHub link.');
   else mapMsg('Loading map…');
   loadLeaflet().then(L=>{
     if(!LMAP){LMAP=L.map('mapbox',{zoomControl:true,attributionControl:true}).setView([45.4215,-75.6972],11);}
@@ -806,7 +826,8 @@ function openMap(rt,to,di){
     if(b.length)LMAP.fitBounds(L.latLngBounds(b),{padding:[24,24]});mapMsg('');
   }).catch(()=>mapMsg('The map can’t load here. Open My Work from your GitHub link to see it.'))}
 function closeMap(){$('mapsheet').hidden=true;document.body.style.overflow=''}
-document.addEventListener('click',e=>{const mb=e.target.closest('.rnmap');if(mb){openMap(mb.dataset.route,mb.dataset.to,mb.dataset.dir);return}
+document.addEventListener('click',e=>{const mb=e.target.closest('.rnline');if(mb){openMap(mb.dataset.route);return}
+  const dk=e.target.closest('#mapdirs button');if(dk){showDir(+dk.dataset.dk);return}
   const mm=e.target.closest('#mapmodes button');if(mm){setMapMode(mm.dataset.mm);return}
   if(e.target.closest('#mapclose'))closeMap()});
 document.addEventListener('keydown',e=>{if(e.key=='Escape'&&!$('mapsheet').hidden)closeMap()});
