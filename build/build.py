@@ -193,6 +193,102 @@ def label(dt):
     h = dt.hour % 12 or 12
     return '%s %d (%d %s)' % (dt.strftime('%B'), dt.day, h, 'AM' if dt.hour < 12 else 'PM')
 
+# ---------- Route lines for My Work (from OC Transpo GTFS) ----------
+GTFS_ZIP = os.environ.get('GTFS_ZIP', '/tmp/gtfs.zip')
+
+def _enc_poly(pts):
+    out = []; plat = plng = 0
+    for lat, lng in pts:
+        ilat, ilng = int(round(lat * 1e5)), int(round(lng * 1e5))
+        for d in (ilat - plat, ilng - plng):
+            v = ~(d << 1) if d < 0 else d << 1
+            while v >= 0x20:
+                out.append(chr((0x20 | (v & 0x1f)) + 63)); v >>= 5
+            out.append(chr(v + 63))
+        plat, plng = ilat, ilng
+    return ''.join(out)
+
+def _simplify(pts, tol_m=6.0):
+    import math
+    if len(pts) < 3: return pts
+    k = 111320.0; c = math.cos(math.radians(pts[0][0]))
+    xy = [(p[1] * k * c, p[0] * k) for p in pts]
+    keep = [False] * len(pts); keep[0] = keep[-1] = True
+    stack = [(0, len(pts) - 1)]
+    while stack:
+        a, b = stack.pop()
+        ax, ay = xy[a]; bx, by = xy[b]; dx, dy = bx - ax, by - ay; L2 = dx * dx + dy * dy
+        best, bi = -1, -1
+        for i in range(a + 1, b):
+            px, py = xy[i]
+            if L2 == 0: d = math.hypot(px - ax, py - ay)
+            else:
+                t = max(0, min(1, ((px - ax) * dx + (py - ay) * dy) / L2))
+                d = math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+            if d > best: best, bi = d, i
+        if best > tol_m:
+            keep[bi] = True; stack += [(a, bi), (bi, b)]
+    return [p for p, kp in zip(pts, keep) if kp]
+
+def _my_routes(page):
+    m = re.search(r'const MINE=(\{.*?\});\n', page)
+    if not m: return []
+    mine = json.loads(m.group(1)); out = []
+    for sh in mine.get('shifts', {}).values():
+        for r in sh.get('runs', []):
+            for v in str(r[1]).split(','):
+                v = v.strip()
+                if v and v not in out: out.append(v)
+    return out
+
+def add_route_shapes(page):
+    """Embed the main shape(s) of each booked route as encoded polylines in `const SHAPES={};`.
+    Uses the GTFS zip downloaded by the workflow; falls back to data/shapes.json from an earlier build."""
+    import csv, io, zipfile
+    if 'const SHAPES={};' not in page: return page
+    routes = _my_routes(page)
+    cache_p = P('data', 'shapes.json')
+    cache = json.load(open(cache_p, encoding='utf8')) if os.path.exists(cache_p) else {}
+    shapes = {}
+    if os.path.exists(GTFS_ZIP):
+        try:
+            z = zipfile.ZipFile(GTFS_ZIP)
+            def rows(name):
+                return csv.DictReader(io.TextIOWrapper(z.open(name), encoding='utf-8-sig'))
+            rid = {}
+            for r in rows('routes.txt'):
+                n = (r.get('route_short_name') or '').strip()
+                if n in routes: rid.setdefault(r['route_id'], n)
+            cnt = {}
+            for t in rows('trips.txt'):
+                n = rid.get(t['route_id'])
+                if n and t.get('shape_id'):
+                    key = (n, t.get('direction_id') or '0', t['shape_id'])
+                    cnt[key] = cnt.get(key, 0) + 1
+            best = {}
+            for (n, d, sid), c in cnt.items():
+                if c > best.get((n, d), ('', -1))[1]: best[(n, d)] = (sid, c)
+            want = {}
+            for (n, d), (sid, c) in best.items(): want.setdefault(sid, []).append(n)
+            pts = {}
+            for r in rows('shapes.txt'):
+                sid = r['shape_id']
+                if sid in want:
+                    pts.setdefault(sid, []).append((int(r['shape_pt_sequence']), float(r['shape_pt_lat']), float(r['shape_pt_lon'])))
+            for sid, lst in pts.items():
+                lst.sort(); enc = _enc_poly(_simplify([(a, b) for _, a, b in lst]))
+                for n in want[sid]: shapes.setdefault(n, []).append(enc)
+            print('Route lines from GTFS: %d of %d routes' % (len(shapes), len(routes)))
+            for n in shapes: cache[n] = shapes[n]
+            json.dump(cache, open(cache_p, 'w', encoding='utf8'), separators=(',', ':'), sort_keys=True)
+        except Exception as e:
+            print('GTFS route lines skipped:', e, file=sys.stderr)
+    final = {n: (shapes.get(n) or cache.get(n)) for n in routes if shapes.get(n) or cache.get(n)}
+    missing = [n for n in routes if n not in final]
+    if missing: print('No route line for:', ', '.join(missing))
+    return page.replace('const SHAPES={};', 'const SHAPES=' + json.dumps(final, separators=(',', ':')) + ';', 1)
+
+
 def main():
     state = json.load(open(P('data', 'state.json'), encoding='utf8'))
     routes = json.load(open(P('data', 'routes.json'), encoding='utf8'))
@@ -271,8 +367,10 @@ def main():
     # Extra ready-made pages (e.g. My Work): build/my-work.html -> site/my-work.html
     extra = P('build', 'my-work.html')
     if os.path.exists(extra):
-        open(P('site', 'my-work.html'), 'w', encoding='utf8').write(open(extra, encoding='utf8').read())
-        print('Copied build/my-work.html to site/my-work.html')
+        page = open(extra, encoding='utf8').read()
+        page = add_route_shapes(page)
+        open(P('site', 'my-work.html'), 'w', encoding='utf8').write(page)
+        print('Built site/my-work.html')
     json.dump(state, open(P('data', 'state.json'), 'w', encoding='utf8'), ensure_ascii=False, separators=(',', ':'))
     json.dump(routes, open(P('data', 'routes.json'), 'w', encoding='utf8'), ensure_ascii=False, separators=(',', ':'), sort_keys=True)
     print('\nBuilt site/index.html, data as of %s' % asof)
