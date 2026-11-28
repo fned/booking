@@ -259,17 +259,23 @@ def add_route_shapes(page):
             for r in rows('routes.txt'):
                 n = (r.get('route_short_name') or '').strip()
                 if n in routes: rid.setdefault(r['route_id'], n)
-            cnt = {}
+            cnt = {}; heads = {}
             for t in rows('trips.txt'):
                 n = rid.get(t['route_id'])
                 if n and t.get('shape_id'):
                     key = (n, t.get('direction_id') or '0', t['shape_id'])
                     cnt[key] = cnt.get(key, 0) + 1
+                    h = (t.get('trip_headsign') or '').strip()
+                    if h:
+                        hc = heads.setdefault(key, {}); hc[h] = hc.get(h, 0) + 1
             best = {}
             for (n, d, sid), c in cnt.items():
                 if c > best.get((n, d), ('', -1))[1]: best[(n, d)] = (sid, c)
-            want = {}
-            for (n, d), (sid, c) in best.items(): want.setdefault(sid, []).append(n)
+            want = {}; head_of = {}
+            for (n, d), (sid, c) in best.items():
+                want.setdefault(sid, []).append(n)
+                hc = heads.get((n, d, sid), {})
+                head_of[(n, sid)] = max(hc, key=hc.get) if hc else ''
             pts = {}
             for r in rows('shapes.txt'):
                 sid = r['shape_id']
@@ -277,7 +283,7 @@ def add_route_shapes(page):
                     pts.setdefault(sid, []).append((int(r['shape_pt_sequence']), float(r['shape_pt_lat']), float(r['shape_pt_lon'])))
             for sid, lst in pts.items():
                 lst.sort(); enc = _enc_poly(_simplify([(a, b) for _, a, b in lst]))
-                for n in want[sid]: shapes.setdefault(n, []).append(enc)
+                for n in want[sid]: shapes.setdefault(n, []).append({'to': head_of.get((n, sid), ''), 'p': enc})
             print('Route lines from GTFS: %d of %d routes' % (len(shapes), len(routes)))
             for n in shapes: cache[n] = shapes[n]
             json.dump(cache, open(cache_p, 'w', encoding='utf8'), separators=(',', ':'), sort_keys=True)

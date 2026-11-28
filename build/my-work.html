@@ -55,6 +55,7 @@ button{cursor:pointer;touch-action:manipulation}
 .rnroutes{display:flex;flex-wrap:wrap;gap:10px}
 .rnr{display:grid;justify-items:center;gap:6px;min-width:64px;padding:8px 8px 9px;border-radius:12px;background:var(--surface2);border:1px solid var(--line)}
 .rnno{font:800 24px/1 var(--f-num);color:var(--accent)}
+.rnto{font:700 13px/1.15 var(--f-num);color:var(--ink);text-align:center;max-width:110px}
 .rnmap{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:0;border-radius:999px;background:var(--good);color:var(--surface);font:700 12.5px var(--f-num);letter-spacing:.02em;cursor:pointer}
 .rnmap svg{width:13px;height:13px}
 .mapsheet{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:var(--bg)}
@@ -759,11 +760,20 @@ function paddleHTML(S,C,today,mode){
   return h;
 }
 
+const shortStop=t=>String(t||'').replace(/\s+(Station|Stn)\b.*$/i,'').trim();
+function routeDirs(rt){
+  const sh=(typeof SHAPES!='undefined'&&SHAPES[rt])||null;
+  if(sh&&sh.length)return sh.map((x,i)=>({to:shortStop(typeof x=='string'?'':x.to)||('Direction '+(i+1)),i}));
+  const seen=[];Object.entries(MINE.shifts).forEach(([k,x])=>{const L=PADDLE[k]||[];x.runs.forEach(pc=>{const r=L.find(q=>q.run==pc[0]);if(!r)return;const on=tmin(pc[3])-15,off=tmin(pc[4])+5;
+    r.items.forEach(it=>{if(it.k!='trip'||it.route!=rt)return;const a=tmin(it.stops[0][0]),z=tmin(it.stops[it.stops.length-1][0]);if(a>=on&&z>=a&&z<=off){const n=shortStop(it.to);if(n&&!/^Extra\b/i.test(n)&&!seen.includes(n))seen.push(n)}})})});
+  return seen.map(n=>({to:n,i:-1}));
+}
 function runsHTML(S,C,today){
   const rt=[];
   Object.values(S).forEach(x=>x.runs.forEach(p=>p[1].split(',').map(v=>v.trim()).filter(Boolean).forEach(v=>{if(!rt.includes(v))rt.push(v)})));
   rt.sort((a,b)=>(parseInt(a)-parseInt(b))||a.localeCompare(b));
-  return '<h2 class="h2">Runs</h2><div class="rnroutes">'+rt.map(v=>'<div class="rnr"><span class="rnno">'+esc(v)+'</span><button type="button" class="rnmap" data-route="'+esc(v)+'"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M1.5 3.5l4-1.5 5 2 4-1.5v10l-4 1.5-5-2-4 1.5z"/><path d="M5.5 2v10M10.5 4v10"/></svg>Map</button></div>').join('')+'</div>';
+  const rows=[];rt.forEach(v=>{const d=routeDirs(v).sort((a,b)=>a.to.localeCompare(b.to));if(!d.length)rows.push({rt:v,to:'',i:-1});else d.forEach(x=>rows.push({rt:v,to:x.to,i:x.i}))});
+  return '<h2 class="h2">Runs</h2><div class="rnroutes">'+rows.map(r=>'<div class="rnr"><span class="rnno">'+esc(r.rt)+'</span><span class="rnto">'+esc(r.to||'—')+'</span><button type="button" class="rnmap" data-route="'+esc(r.rt)+'" data-to="'+esc(r.to)+'" data-dir="'+r.i+'"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M1.5 3.5l4-1.5 5 2 4-1.5v10l-4 1.5-5-2-4 1.5z"/><path d="M5.5 2v10M10.5 4v10"/></svg>Map</button></div>').join('')+'</div>';
 }
 
 const MAPL={c:'Colour',g:'Greyscale',s:'Satellite'};let mapMode='c',LMAP=null,LTILE=null,LLINES=[];
@@ -781,10 +791,11 @@ function setMapMode(k){mapMode=k;try{localStorage.setItem('my-work-map',k)}catch
   LTILE=k=='s'?L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery &copy; Esri'})
              :L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'});
   LTILE.addTo(LMAP);LLINES.forEach(l=>l.setStyle({color:k=='s'?'#38bdf8':'#1b56c4'}))}
-function openMap(rt){
-  $('maptitle').textContent='Route '+rt;$('mapsheet').hidden=false;document.body.style.overflow='hidden';setMapMode(mapMode);
-  const sh=(typeof SHAPES!='undefined'&&SHAPES[rt])||null;
-  if(!sh){mapMsg('The route line for '+rt+' isn’t in this copy. Route lines are added when your GitHub site is built, so open My Work from your GitHub link.');}
+function openMap(rt,to,di){
+  $('maptitle').textContent=rt+(to?' '+to:'');$('mapsheet').hidden=false;document.body.style.overflow='hidden';setMapMode(mapMode);
+  let sh=(typeof SHAPES!='undefined'&&SHAPES[rt])||null;
+  if(sh){const all=sh.map(x=>typeof x=='string'?{to:'',p:x}:x);const pick=all[+di]||all.find(x=>shortStop(x.to)==to);sh=pick?[pick.p]:null}
+  if(!sh){mapMsg('The route line for '+rt+(to?' to '+to:'')+' isn’t in this copy. Route lines are added when your GitHub site is built, so open My Work from your GitHub link.');}
   else mapMsg('Loading map…');
   loadLeaflet().then(L=>{
     if(!LMAP){LMAP=L.map('mapbox',{zoomControl:true,attributionControl:true}).setView([45.4215,-75.6972],11);}
@@ -795,7 +806,7 @@ function openMap(rt){
     if(b.length)LMAP.fitBounds(L.latLngBounds(b),{padding:[24,24]});mapMsg('');
   }).catch(()=>mapMsg('The map can’t load here. Open My Work from your GitHub link to see it.'))}
 function closeMap(){$('mapsheet').hidden=true;document.body.style.overflow=''}
-document.addEventListener('click',e=>{const mb=e.target.closest('.rnmap');if(mb){openMap(mb.dataset.route);return}
+document.addEventListener('click',e=>{const mb=e.target.closest('.rnmap');if(mb){openMap(mb.dataset.route,mb.dataset.to,mb.dataset.dir);return}
   const mm=e.target.closest('#mapmodes button');if(mm){setMapMode(mm.dataset.mm);return}
   if(e.target.closest('#mapclose'))closeMap()});
 document.addEventListener('keydown',e=>{if(e.key=='Escape'&&!$('mapsheet').hidden)closeMap()});
